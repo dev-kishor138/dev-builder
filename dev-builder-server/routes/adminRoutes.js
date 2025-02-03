@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateAdmin } from "../middleware/authMiddleware.js";
-import { categryStore, getAllCategory } from "../controllers/categoryController.js";
+import { categryStore, deleteCategory, getAllCategory, getSingleCategory, updateCategory } from "../controllers/categoryController.js";
 
 
 const adminRoutes = express.Router();
@@ -12,6 +12,9 @@ adminRoutes.get("/profile", authenticateAdmin, (req, res) => {
 
 adminRoutes.post('/category-store', authenticateAdmin, categryStore);
 adminRoutes.get('/category-list', authenticateAdmin, getAllCategory);
+adminRoutes.get('/category/:slug', authenticateAdmin, getSingleCategory);
+adminRoutes.put('/category/update/:slug', authenticateAdmin, updateCategory);
+adminRoutes.delete('/category/delete/:slug', authenticateAdmin, deleteCategory);
 
 
 
