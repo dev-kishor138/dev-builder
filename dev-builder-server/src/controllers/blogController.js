@@ -1,4 +1,4 @@
-import { generateSlug } from "../lib/utilityFunction.js";
+import { generateUniqueSlug } from "../lib/utilityFunction.js";
 import Blog from "../models/Blog.js";
 
 
@@ -9,16 +9,7 @@ export const blogStore = async (req, res, next) => {
     try {
         const { userId, categoryId, title, description, image } = req.body;
 
-        // console.log(title);
-
-        let slug = generateSlug(title);
-        let existingBlogTitle = await Blog.findOne({ slug });
-        let suffix = 1;
-        while (existingBlogTitle) {
-            slug = `${generateSlug(title)}-${suffix}`;
-            existingBlogTitle = await Blog.findOne({ slug });
-            suffix++;
-        }
+        let slug = generateUniqueSlug(Blog, title);
 
         const blog = new Blog({
             userId,

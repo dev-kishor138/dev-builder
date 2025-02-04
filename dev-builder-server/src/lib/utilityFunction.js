@@ -10,3 +10,16 @@ export const generateSlug = (text) => {
         .replace(/-+/g, '-')                // একাধিক হাইফেনকে একটি হাইফেনে সংকোচন
         .replace(/^-+|-+$/g, '');           // শুরু ও শেষে হাইফেন অপসারণ
 };
+
+
+export const generateUniqueSlug = async (model, name) => {
+    let slug = generateSlug(name);
+    let existingRecord = await model.findOne({ slug });
+    let suffix = 1;
+    while (existingRecord) {
+        slug = `${generateSlug(name)}-${suffix}`;
+        existingRecord = await model.findOne({ slug });
+        suffix++;
+    }
+    return slug;
+}

@@ -1,5 +1,5 @@
 import DevBuildError from "../lib/DevBuildError.js";
-import { generateSlug } from "../lib/utilityFunction.js";
+import { generateUniqueSlug } from "../lib/utilityFunction.js";
 import Category from "../models/Category.js";
 
 
@@ -9,14 +9,7 @@ export const categryStore = async (req, res, next) => {
     try {
         const { categoryName, description, image, parent_category_id } = req.body;
 
-        let slug = generateSlug(categoryName);
-        let existingCategory = await Category.findOne({ slug });
-        let suffix = 1;
-        while (existingCategory) {
-            slug = `${generateSlug(categoryName)}-${suffix}`;
-            existingCategory = await Category.findOne({ slug });
-            suffix++;
-        }
+        let slug = generateUniqueSlug(Category, categoryName);
 
         if (parent_category_id) {
             const parentCategory = await Category.findById(parent_category_id);
@@ -84,16 +77,7 @@ export const updateCategory = async (req, res, next) => {
         }
 
         // If categoryName is change then generate new Slug
-        let newSlug = categoryName ? generateSlug(categoryName) : category.slug;
-        if (categoryName && newSlug !== category.slug) {
-            let existingCategory = await Category.findOne({ slug: newSlug });
-            let suffix = 1;
-            while (existingCategory) {
-                newSlug = `${generateSlug(categoryName)}-${suffix}`;
-                existingCategory = await Category.findOne({ slug: newSlug });
-                suffix++;
-            }
-        }
+        let newSlug = categoryName ? generateUniqueSlug(Category, categoryName) : category.slug;
 
         // parent_category_id checked
         if (parent_category_id) {
