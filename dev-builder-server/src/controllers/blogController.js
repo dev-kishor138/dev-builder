@@ -5,7 +5,7 @@ import Blog from "../models/Blog.js";
 
 // ✅ Create Blog
 export const blogStore = async (req, res, next) => {
-    // console.log('from blog controller:', JSON.stringify(req.body, null, 2));
+    console.log('from blog controller:', JSON.stringify(req.body, null, 2));
     try {
         const { userId, categoryId, title, description, image } = req.body;
 
@@ -27,3 +27,13 @@ export const blogStore = async (req, res, next) => {
         next(error);
     }
 }
+
+// ✅ Get All Blog
+export const getAllBlog = async (req, res, next) => {
+    try {
+        const blogs = await Blog.find({ status: "active" }).sort({ createdAt: -1 }).limit(10);
+        res.status(200).json(blogs);
+    } catch (error) {
+        next(error);
+    }
+};

@@ -38,7 +38,7 @@ export const categryStore = async (req, res, next) => {
 // ✅ Get All Category
 export const getAllCategory = async (req, res, next) => {
     try {
-        const categories = await Category.find();
+        const categories = await Category.find({ status: "active" });
         res.status(200).json(categories);
     } catch (error) {
         next(error);

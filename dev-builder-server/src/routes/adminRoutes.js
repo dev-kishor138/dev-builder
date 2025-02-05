@@ -1,7 +1,7 @@
 import express from "express";
 import { authenticateAdmin } from "../middleware/authMiddleware.js";
 import { categryStore, deleteCategory, getAllCategory, getSingleCategory, updateCategory } from "../controllers/categoryController.js";
-import { blogStore } from "../controllers/blogController.js";
+import { blogStore, getAllBlog } from "../controllers/blogController.js";
 
 
 const adminRoutes = express.Router();
@@ -20,6 +20,7 @@ adminRoutes.delete('/category/delete/:slug', authenticateAdmin, deleteCategory);
 
 // Blog related Routes 
 adminRoutes.post('/blog-store', authenticateAdmin, blogStore);
+adminRoutes.post('/blogs', authenticateAdmin, getAllBlog);
 
 
 
