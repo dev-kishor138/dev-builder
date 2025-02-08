@@ -7,23 +7,18 @@ import Bookmark from "../models/BookMark.js";
 // ✅ Create Bookmark
 export const bookmarkStore = async (req, res, next) => {
     try {
-        const { bookmarkName, description, image, parent_bookmark_id } = req.body;
-
-        let slug = await generateUniqueSlug(Bookmark, bookmarkName);
-
-        if (parent_bookmark_id) {
-            const parentBookmark = await Bookmark.findById(parent_bookmark_id);
-            if (!parentBookmark) {
-                // return res.status(400).json({ error: 'Invalid parent bookmark ID' });
-                throw new DevBuildError('Invalid parent bookmark ID', 400);
-            }
+        const { blogId, folderId } = req.body;
+        const { id: userId } = req.user;
+        if (!folderId) {
+            throw new DevBuildError("FolderName is required", 400);
+        }
+        if (!blogId) {
+            throw new DevBuildError("BlogId is required", 400);
         }
         const bookmark = new Bookmark({
-            bookmarkName,
-            slug,
-            description: description || '',
-            image: image || '',
-            parent_bookmark_id: parent_bookmark_id || null,
+            blogId,
+            folderId,
+            userId
         });
         await bookmark.save();
         res.status(201).json({ message: "Bookmark Created Successfully" });

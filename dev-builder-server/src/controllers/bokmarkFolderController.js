@@ -31,7 +31,7 @@ export const bookmarkFolderStore = async (req, res, next) => {
 // ✅ Get All BookmarkFolder
 export const getAllBookmarkFolder = async (req, res, next) => {
     try {
-        const { id: userId, role } = req.user; 
+        const { id: userId, role } = req.user;
 
         let filter = { status: "active" };
 
@@ -72,64 +72,51 @@ export const updateBookmarkFolder = async (req, res, next) => {
     try {
         const { slug } = req.params;
         const { folderName } = req.body;
-        const { userId } = req.user;
+        const { id: userId, role } = req.user;
 
-        // if (!userId) {
-        //     throw new DevBuildError("User is required", 400);
-        // }
+        const filter = role === "admin" ? { slug } : { slug, userId };
 
-        // find BookmarkFolder
-        const bookmarkFolder = await BookmarkFolder.findOne({ slug, userId });
-        if (!bookmarkFolder) {
-            throw new DevBuildError('BookmarkFolder Not Found', 404);
+        const bookmarkFolder = await BookmarkFolder.findOne(filter);
+        if (!bookmarkFolder) throw new DevBuildError('BookmarkFolder Not Found', 404);
+
+        const updateData = {
+            ...(folderName && folderName !== bookmarkFolder.folderName && {
+                folderName,
+                slug: await generateUniqueSlug(BookmarkFolder, folderName)
+            })
+        };
+
+        if (Object.keys(updateData).length > 0) {
+            await BookmarkFolder.updateOne({ slug }, { $set: updateData });
+            return res.status(200).json({ message: 'BookmarkFolder Updated Successfully' });
         }
 
-        // If bookmarkFolderName is change then generate new Slug
-        let newSlug = folderName ? await generateUniqueSlug(BookmarkFolder, folderName) : bookmarkFolder.slug;
+        res.status(200).json({ message: 'Nothing to update' });
 
-        // ready for update data
-        const updateData = {};
-        if (folderName && folderName !== bookmarkFolder.folderName) {
-            updateData.folderName = folderName;
-        }
-        if (newSlug !== bookmarkFolder.slug) {
-            updateData.slug = newSlug;
-        }
-
-        // when no changes
-        if (Object.keys(updateData).length === 0) {
-            return res.status(200).json({ message: 'Nothing to update' });
-        }
-
-        // Update The BookmarkFolder
-        await BookmarkFolder.updateOne({ slug }, { $set: updateData });
-
-        res.status(200).json({ message: 'BookmarkFolder Updated Successfully' });
     } catch (error) {
         next(error);
     }
 };
 
 
-
 // ✅ Delete BookmarkFolder
 export const deleteBookmarkFolder = async (req, res, next) => {
     try {
         const { slug } = req.params;
-        const { userId } = req.user;
-        const bookmarkFolder = await BookmarkFolder.findOne({ slug, userId });
+        const { id: userId, role } = req.user;
 
-        if (!bookmarkFolder) {
-            throw new DevBuildError('BookmarkFolder not found', 404);
-        }
+        const filter = role === "admin" ? { slug } : { slug, userId };
 
-        // Soft delete the bookmarkFolder
+        const bookmarkFolder = await BookmarkFolder.findOne(filter);
+        if (!bookmarkFolder) throw new DevBuildError('BookmarkFolder not found', 404);
+
         await bookmarkFolder.softDelete();
         res.status(200).json({ message: "BookmarkFolder Deleted Successfully" });
 
     } catch (error) {
         next(error);
     }
-}
+};
+
 
 
