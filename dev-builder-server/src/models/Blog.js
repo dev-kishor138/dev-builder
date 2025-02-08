@@ -21,6 +21,6 @@ const blogSchema = new Schema(
 // ✅ Apply the soft delete plugin
 blogSchema.plugin(softDeletePlugin);
 
-export const Blog = mongoose.model.Blog || mongoose.model("Blog", blogSchema);
+export const Blog = mongoose.models.Blog || mongoose.model("Blog", blogSchema);
 
 export default Blog;

@@ -1,15 +1,21 @@
+import DevBuildError from "../lib/DevBuildError.js";
 import { generateUniqueSlug } from "../lib/utilityFunction.js";
 import Blog from "../models/Blog.js";
+import BlogTags from "../models/BlogTags.js";
 
 
 
 // ✅ Create Blog
 export const blogStore = async (req, res, next) => {
-    console.log('from blog controller:', JSON.stringify(req.body, null, 2));
     try {
-        const { userId, categoryId, title, description, image } = req.body;
+        const { userId, categoryId, title, description, image, tagId } = req.body;
 
-        let slug = generateUniqueSlug(Blog, title);
+        if (!userId || !categoryId || !title) {
+            throw new DevBuildError("User ID, Category, and Title are required", 400);
+        }
+
+        let slug = title ? await generateUniqueSlug(Blog, title) : null;
+        if (!slug) throw new DevBuildError("Slug generation failed", 500);
 
         const blog = new Blog({
             userId,
@@ -19,21 +25,160 @@ export const blogStore = async (req, res, next) => {
             description: description || '',
             image: image || '',
         });
+
         await blog.save();
+
+        // ট্যাগ থাকলে যোগ করো
+        if (Array.isArray(tagId) && tagId.length > 0) {
+            const blogTagsData = tagId.map((tag) => ({ blogId: blog._id, tagId: tag }));
+            await BlogTags.insertMany(blogTagsData);
+        } else if (tagId) {
+            await BlogTags.create({ blogId: blog._id, tagId });
+        }
+
         res.status(201).json({ message: "Blog Created Successfully" });
 
     } catch (error) {
-        // console.log(error);
+        console.error("Error in blogStore:", error);
         next(error);
     }
-}
+};
+
 
 // ✅ Get All Blog
 export const getAllBlog = async (req, res, next) => {
     try {
-        const blogs = await Blog.find({ status: "active" }).sort({ createdAt: -1 }).limit(10);
-        res.status(200).json(blogs);
+        const blogs = await Blog.find({ status: "active" })
+            .populate("categoryId", "categoryName")
+            .select("-userId -categoryId -status -isDeleted -__v")
+            .sort({ createdAt: -1 })
+            .limit(10);
+
+        const blogsWithTags = await Promise.all(
+            blogs.map(async (blog) => {
+                const tags = await BlogTags.find({ blogId: blog._id })
+                    .populate("tagId", "tag slug")
+                    .select("-__v");
+
+                return { ...blog.toObject(), tags: tags.map(t => t.tagId) };
+            })
+        );
+
+        res.status(200).json(blogsWithTags);
     } catch (error) {
         next(error);
     }
 };
+
+
+
+// ✅ Get Single Blog
+export const getSingleBlog = async (req, res, next) => {
+    try {
+        const { slug } = req.params;
+
+        const blog = await Blog.findOne({ slug })
+            .populate("categoryId", "categoryName") // ক্যাটাগরির নামসহ তথ্য আনবে
+            .select("-userId -categoryId -status -isDeleted -__v"); // অপ্রয়োজনীয় ফিল্ড বাদ দেওয়া হয়েছে
+
+        if (!blog) {
+            return res.status(404).json({ message: "Blog not found" });
+        }
+
+        // ব্লগের ট্যাগগুলো আনছি
+        const tags = await BlogTags.find({ blogId: blog._id })
+            .populate("tagId", "tag slug")
+            .select("-__v");
+
+        // ফাইনাল JSON রেসপন্স
+        res.status(200).json({ ...blog.toObject(), tags: tags.map(t => t.tagId) });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
+// ✅ Update Blog
+export const updateBlog = async (req, res, next) => {
+    try {
+        const { slug } = req.params;
+        const { blogId, title, description, image, tagId } = req.body;
+
+        // console.log(tagId);
+
+        // find Blog
+        const blog = await Blog.findOne({ slug });
+        if (!blog) {
+            throw new DevBuildError('Blog not found', 404);
+        }
+
+        // If title is changed, generate new Slug
+        let newSlug = title ? await generateUniqueSlug(Blog, title) : blog.slug;
+
+        // ready for update data
+        const updateData = {};
+        if (title && title !== blog.title) {
+            updateData.title = title;
+        }
+        if (description && description !== blog.description) {
+            updateData.description = description;
+        }
+        if (image && image !== blog.image) {
+            updateData.image = image;
+        }
+        if (blogId && blogId !== blog.blogId) {
+            updateData.blogId = blogId; // Ensure that you really need to update blogId
+        }
+        if (newSlug !== blog.slug) {
+            updateData.slug = newSlug;
+        }
+
+        // when no changes
+        if (Object.keys(updateData).length === 0) {
+            return res.status(200).json({ message: 'Nothing to update' });
+        }
+
+        // Update The Blog (except blogId)
+        await Blog.updateOne({ slug }, { $set: updateData });
+
+        // Delete previous BlogTags for this blog
+        await BlogTags.deleteMany({ blogId: blog._id });
+
+        // Handle tags update - Create new BlogTags for each tagId
+        if (Array.isArray(tagId)) {
+            const blogTagsData = tagId.map((tag) => ({ blogId: blog._id, tagId: tag }));
+            await BlogTags.insertMany(blogTagsData);
+        } else {
+            await BlogTags.insertOne({ blogId: blog._id, tagId });
+        }
+
+        res.status(200).json({ message: 'Blog Updated Successfully' });
+
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+}
+
+
+
+// ✅ Delete Blog
+export const deleteBlog = async (req, res, next) => {
+    try {
+        const { slug } = req.params;
+        const blog = await Blog.findOne({ slug });
+
+        if (!blog) {
+            throw new DevBuildError('Blog not found', 404);
+        }
+
+        // Soft delete the Blog
+        await blog.softDelete();
+        res.status(200).json({ message: "Blog Deleted Successfully" });
+
+    } catch (error) {
+        next(error);
+    }
+}

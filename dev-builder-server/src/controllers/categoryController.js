@@ -9,7 +9,7 @@ export const categryStore = async (req, res, next) => {
     try {
         const { categoryName, description, image, parent_category_id } = req.body;
 
-        let slug = generateUniqueSlug(Category, categoryName);
+        let slug = await generateUniqueSlug(Category, categoryName);
 
         if (parent_category_id) {
             const parentCategory = await Category.findById(parent_category_id);
@@ -77,7 +77,7 @@ export const updateCategory = async (req, res, next) => {
         }
 
         // If categoryName is change then generate new Slug
-        let newSlug = categoryName ? generateUniqueSlug(Category, categoryName) : category.slug;
+        let newSlug = categoryName ? await generateUniqueSlug(Category, categoryName) : category.slug;
 
         // parent_category_id checked
         if (parent_category_id) {
