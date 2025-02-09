@@ -6,6 +6,7 @@ import { deleteTags, getAllTags, getSingleTags, tagStore, updateTags } from "../
 import { reactBlog } from "../controllers/reactController.js";
 import { createComment, deleteComment, updateComment } from "../controllers/commentController.js";
 import { bookmarkFolderStore, deleteBookmarkFolder, getAllBookmarkFolder, updateBookmarkFolder } from "../controllers/bokmarkFolderController.js";
+import { bookmarkStore, deleteBookmark, getAllBookmark, getSingleBookmark } from "../controllers/bookmarkController.js";
 
 
 const adminRoutes = express.Router();
@@ -46,5 +47,11 @@ adminRoutes.get('/bookmark-folder', authenticateAdmin, getAllBookmarkFolder);
 // adminRoutes.get('/tag/:slug', authenticateAdmin, getSingleTags);
 adminRoutes.put('/bookmark-folder/update/:slug', authenticateAdmin, updateBookmarkFolder);
 adminRoutes.delete('/bookmark-folder/delete/:slug', authenticateAdmin, deleteBookmarkFolder);
+
+// bookmark related routes 
+adminRoutes.post('/bookmark/store', authenticateAdmin, bookmarkStore);
+adminRoutes.get('/bookmarks', authenticateAdmin, getAllBookmark);
+adminRoutes.get('/bookmark/:id', authenticateAdmin, getSingleBookmark);
+adminRoutes.delete('/bookmark/delete/:id', authenticateAdmin, deleteBookmark);
 
 export default adminRoutes;

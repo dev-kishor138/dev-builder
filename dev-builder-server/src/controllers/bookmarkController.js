@@ -24,7 +24,7 @@ export const bookmarkStore = async (req, res, next) => {
         res.status(201).json({ message: "Bookmark Created Successfully" });
 
     } catch (error) {
-        // res.status(400).json({ error: error.message });
+        console.log(error);
         next(error);
     }
 }
@@ -32,107 +32,66 @@ export const bookmarkStore = async (req, res, next) => {
 // ✅ Get All Bookmark
 export const getAllBookmark = async (req, res, next) => {
     try {
-        const { userId } = req.user;
-        const categories = await Bookmark.find({ status: "active", userId });
-        res.status(200).json(categories);
-    } catch (error) {
-        next(error);
-    }
-}
+        const { id: userId, role } = req.user;
 
-
-// ✅ Get Single Bookmark
-export const getSingleBookmark = async (req, res, next) => {
-    try {
-        const { slug } = req.params;
-        const bookmark = await Bookmark.findOne({ slug }).populate('parent_bookmark_id');
-        if (!bookmark) {
-            throw new DevBuildError('Bookmark not found', 404);
-        }
-        // Find subcategories
-        const subcategories = await Bookmark.find({ parent_bookmark_id: bookmark._id });
-        bookmark.subcategories = subcategories;
-        res.status(200).json(bookmark);
-    } catch (error) {
-        next(error);
-    }
-}
-
-
-// ✅ Update Bookmark
-export const updateBookmark = async (req, res, next) => {
-    try {
-        const { slug } = req.params;
-        const { bookmarkName, description, image, parent_bookmark_id } = req.body;
-
-        // find Bookmark
-        const bookmark = await Bookmark.findOne({ slug });
-        if (!bookmark) {
-            throw new DevBuildError('Bookmark not found', 404);
+        if (role !== "admin" && role !== "user") {
+            throw new Error("Unauthorized access");
         }
 
-        // If bookmarkName is change then generate new Slug
-        let newSlug = bookmarkName ? await generateUniqueSlug(Bookmark, bookmarkName) : bookmark.slug;
+        const filter = role === "admin" ? {} : { userId };
+        const bookmarks = await Bookmark.find(filter);
 
-        // parent_bookmark_id checked
-        if (parent_bookmark_id) {
-            const parentBookmark = await Bookmark.findById(parent_bookmark_id);
-            if (!parentBookmark) {
-                throw new DevBuildError('Invalid parent bookmark ID', 400);
-            }
-        }
-
-        // ready for update data
-        const updateData = {};
-        if (bookmarkName && bookmarkName !== bookmark.bookmarkName) {
-            updateData.bookmarkName = bookmarkName;
-        }
-        if (description && description !== bookmark.description) {
-            updateData.description = description;
-        }
-        if (image && image !== bookmark.image) {
-            updateData.image = image;
-        }
-        if (parent_bookmark_id && parent_bookmark_id !== bookmark.parent_bookmark_id) {
-            updateData.parent_bookmark_id = parent_bookmark_id;
-        }
-        if (newSlug !== bookmark.slug) {
-            updateData.slug = newSlug;
-        }
-
-        // when no changes
-        if (Object.keys(updateData).length === 0) {
-            return res.status(200).json({ message: 'Nothing to update' });
-        }
-
-        // Update The Bookmark
-        await Bookmark.updateOne({ slug }, { $set: updateData });
-
-        res.status(200).json({ message: 'Bookmark Updated Successfully' });
+        res.status(200).json(bookmarks);
     } catch (error) {
         next(error);
     }
 };
 
 
-
-// ✅ Delete Bookmark
-export const deleteBookmark = async (req, res, next) => {
+// ✅ Get Single Bookmark
+export const getSingleBookmark = async (req, res, next) => {
     try {
-        const { slug } = req.params;
-        const bookmark = await Bookmark.findOne({ slug });
+        const { id } = req.params;
+        const { id: userId, role } = req.user;
+
+        const bookmark = await Bookmark.findOne({ _id: id })
+            .populate('blogId')
+            .populate('folderId');
 
         if (!bookmark) {
             throw new DevBuildError('Bookmark not found', 404);
         }
 
-        // Soft delete the bookmark
-        await bookmark.softDelete();
-        res.status(200).json({ message: "Bookmark Deleted Successfully" });
+        if (role !== 'admin' && bookmark.userId.toString() !== userId) {
+            throw new DevBuildError('Unauthorized access', 403);
+        }
 
+        res.status(200).json(bookmark);
     } catch (error) {
         next(error);
     }
-}
+};
+
+
+// ✅ Remove Blog From Bookmark
+export const deleteBookmark = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { id: userId, role } = req.user;
+
+        const bookmark = await Bookmark.findOneAndUpdate(
+            { _id: id, userId: role === 'admin' ? { $exists: true } : userId },
+            { $set: { isDeleted: true } },
+            { new: true }
+        );
+
+        if (!bookmark) {
+            throw new DevBuildError('Bookmark not found or unauthorized access', 404);
+        }
+        res.status(204).json({ message: "Bookmark Deleted Successfully" });
+    } catch (error) {
+        next(error);
+    }
+};
 
 

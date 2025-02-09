@@ -5,6 +5,7 @@ import { deleteTags, tagStore, updateTags } from "../controllers/tagController.j
 import { reactBlog } from "../controllers/reactController.js";
 import { createComment, deleteComment, updateComment } from "../controllers/commentController.js";
 import { bookmarkFolderStore, deleteBookmarkFolder, getAllBookmarkFolder, updateBookmarkFolder } from "../controllers/bokmarkFolderController.js";
+import { bookmarkStore, deleteBookmark, getAllBookmark, getSingleBookmark } from "../controllers/bookmarkController.js";
 
 const userRoutes = express.Router();
 
@@ -32,8 +33,14 @@ userRoutes.delete('/blog/comment-delete/:id', authenticateUser, deleteComment);
 // bookmark folder 
 userRoutes.get('/bookmark-folder', authenticateUser, getAllBookmarkFolder);
 userRoutes.post('/bookmark-folder/store', authenticateUser, bookmarkFolderStore);
-userRoutes.put('/bookmark-folder/update/{slug}', authenticateUser, updateBookmarkFolder);
+userRoutes.put('/bookmark-folder/update/:slug', authenticateUser, updateBookmarkFolder);
 userRoutes.delete('/bookmark-folder/delete/:id', authenticateUser, deleteBookmarkFolder);
+
+// bookmark related Routes 
+userRoutes.get('/bookmark/store', authenticateUser, bookmarkStore);
+userRoutes.post('/bookmarks', authenticateUser, getAllBookmark);
+userRoutes.put('/bookmark/:id', authenticateUser, getSingleBookmark);
+userRoutes.delete('/bookmark/delete/:id', authenticateUser, deleteBookmark);
 
 
 
