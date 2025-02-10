@@ -8,9 +8,11 @@ import BlogTags from "../models/BlogTags.js";
 // ✅ Create Blog
 export const blogStore = async (req, res, next) => {
     try {
-        const { userId, categoryId, title, description, image, tagId } = req.body;
+        const { categoryId, title, description, image, tagId } = req.body;
+        const { id: userId } = req.user;
 
-        if (!userId || !categoryId || !title) {
+
+        if (!categoryId || !title) {
             throw new DevBuildError("User ID, Category, and Title are required", 400);
         }
 
@@ -106,10 +108,10 @@ export const updateBlog = async (req, res, next) => {
         const { slug } = req.params;
         const { blogId, title, description, image, tagId } = req.body;
 
-        // console.log(tagId);
+        const { id: userId } = req.user;
 
         // find Blog
-        const blog = await Blog.findOne({ slug });
+        const blog = await Blog.findOne({ slug, userId });
         if (!blog) {
             throw new DevBuildError('Blog not found', 404);
         }
@@ -168,7 +170,8 @@ export const updateBlog = async (req, res, next) => {
 export const deleteBlog = async (req, res, next) => {
     try {
         const { slug } = req.params;
-        const blog = await Blog.findOne({ slug });
+        const { id: userId } = req.user;
+        const blog = await Blog.findOne({ slug, userId });
 
         if (!blog) {
             throw new DevBuildError('Blog not found', 404);

@@ -5,11 +5,9 @@ import Comment from "../models/Comment.js";
 // ✅ Create Comment
 export const createComment = async (req, res, next) => {
     try {
-        const { userId, blogId, parentCommentId, message } = req.body;
+        const { blogId, parentCommentId, message } = req.body;
+        const { id: userId } = req.user;
 
-        if (!userId) {
-            throw new DevBuildError("User is required", 400);
-        }
         if (!blogId) {
             throw new DevBuildError("Blog is required", 400);
         }
@@ -38,21 +36,23 @@ export const createComment = async (req, res, next) => {
 // ✅ Update Comments
 export const updateComment = async (req, res, next) => {
     try {
-        const { commentId, userId, message } = req.body;
-        if (!commentId) {
-            throw new DevBuildError("Comment ID is required", 400);
-        }
-        if (!userId) {
-            throw new DevBuildError("User ID is required", 400);
-        }
+        const { id } = req.params;
+        const { message } = req.body;
+        const { id: userId, role } = req.user;
+
         if (!message) {
             throw new DevBuildError("Message is required", 400);
         }
 
-        // Check if comment exists and belongs to the user
-        const comment = await Comment.findOne({ _id: commentId, userId });
+        // Check if comment exists
+        const comment = await Comment.findOne({ _id: id });
         if (!comment) {
-            throw new DevBuildError("Comment not found or not authorized", 404);
+            throw new DevBuildError("Comment not found", 404);
+        }
+
+        // Check if the user is authorized to update the comment
+        if (role !== "admin" && comment.userId.toString() !== userId) {
+            throw new DevBuildError("Unauthorized: You can only update your own comments", 403);
         }
 
         // Update the comment
@@ -97,3 +97,70 @@ export const deleteComment = async (req, res, next) => {
     }
 };
 
+
+
+// export const createComment = async (req, res, next) => {
+//     const session = await mongoose.startSession();
+//     session.startTransaction();
+//     try {
+//         const { blogId, parentCommentId, message, image, video } = req.body;
+//         const { id: userId, role } = req.user;
+
+//         // Validation
+//         if (!blogId) throw new DevBuildError("Blog is required", 400);
+//         if (!message) throw new DevBuildError("Message is required", 400);
+//         if (message.length > 500) throw new DevBuildError("Comment cannot exceed 500 characters", 400);
+//         if (message.length < 2) throw new DevBuildError("Comment must be at least 2 characters long", 400);
+
+//         // Check if blog exists
+//         const blog = await Blog.findById(blogId).session(session);
+//         if (!blog) throw new DevBuildError("Blog not found", 404);
+
+//         // Check if parent comment exists and belongs to the same blog
+//         if (parentCommentId) {
+//             const parentComment = await Comment.findById(parentCommentId).session(session);
+//             if (!parentComment) throw new DevBuildError("Parent comment not found", 404);
+//             if (parentComment.blogId.toString() !== blogId) throw new DevBuildError("Parent comment does not belong to this blog", 400);
+//         }
+
+//         // Check for duplicate comments
+//         const existingComment = await Comment.findOne({ userId, blogId, message }).session(session);
+//         if (existingComment) throw new DevBuildError("Duplicate comment detected", 400);
+
+//         // Create comment
+//         const comment = await Comment.create([{
+//             userId,
+//             blogId,
+//             message,
+//             parentCommentId,
+//             image: image || null,
+//             video: video || null,
+//             status: "pending",
+//             likes: 0,
+//             dislikes: 0,
+//             createdAt: new Date(),
+//         }], { session });
+
+//         // Send notification to blog author
+//         if (blog.userId.toString() !== userId) {
+//             await Notification.create([{
+//                 userId: blog.userId,
+//                 message: `New comment on your blog: ${message}`,
+//             }], { session });
+//         }
+
+//         await session.commitTransaction();
+//         session.endSession();
+
+//         res.status(201).json({
+//             message: "Comment added successfully",
+//             commentId: comment[0]._id,
+//             link: `/comments/${comment[0]._id}`,
+//         });
+
+//     } catch (error) {
+//         await session.abortTransaction();
+//         session.endSession();
+//         next(error);
+//     }
+// };

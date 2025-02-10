@@ -38,7 +38,7 @@ adminRoutes.delete('/tag-delete/:slug', authenticateAdmin, deleteTags);
 adminRoutes.post('/blog-react', authenticateAdmin, reactBlog);
 // comments 
 adminRoutes.post('/blog/comment', authenticateAdmin, createComment);
-adminRoutes.put('/blog/comment-update', authenticateAdmin, updateComment);
+adminRoutes.put('/blog/comment-update/:id', authenticateAdmin, updateComment);
 adminRoutes.delete('/blog/comment-delete/:id', authenticateAdmin, deleteComment);
 
 // Bookmark categories Routes

@@ -4,11 +4,9 @@ import BlogReact from "../models/BlogReact.js";
 // ✅ Create or update React
 export const reactBlog = async (req, res, next) => {
     try {
-        const { userId, blogId, react } = req.body;
+        const { blogId, react } = req.body;
+        const { id: userId } = req.user;
 
-        if (!userId) {
-            throw new DevBuildError("User is required", 400);
-        }
         if (!blogId) {
             throw new DevBuildError("Blog is required", 400);
         }

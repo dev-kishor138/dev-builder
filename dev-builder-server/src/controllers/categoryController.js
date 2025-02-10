@@ -8,13 +8,18 @@ import Category from "../models/Category.js";
 export const categryStore = async (req, res, next) => {
     try {
         const { categoryName, description, image, parent_category_id } = req.body;
+        const { role } = req.user;
+
+        // Role check
+        if (role !== "admin") {
+            throw new DevBuildError('Access denied. Admins only.', 403);
+        }
 
         let slug = await generateUniqueSlug(Category, categoryName);
 
         if (parent_category_id) {
             const parentCategory = await Category.findById(parent_category_id);
             if (!parentCategory) {
-                // return res.status(400).json({ error: 'Invalid parent category ID' });
                 throw new DevBuildError('Invalid parent category ID', 400);
             }
         }
@@ -30,7 +35,6 @@ export const categryStore = async (req, res, next) => {
         res.status(201).json({ message: "Category Created Successfully" });
 
     } catch (error) {
-        // res.status(400).json({ error: error.message });
         next(error);
     }
 }
@@ -69,6 +73,13 @@ export const updateCategory = async (req, res, next) => {
     try {
         const { slug } = req.params;
         const { categoryName, description, image, parent_category_id } = req.body;
+
+        const { role } = req.user;
+
+        // Role check
+        if (role !== "admin") {
+            throw new DevBuildError('Access denied. Admins only.', 403);
+        }
 
         // find Category
         const category = await Category.findOne({ slug });
@@ -126,6 +137,13 @@ export const deleteCategory = async (req, res, next) => {
     try {
         const { slug } = req.params;
         const category = await Category.findOne({ slug });
+
+        const { role } = req.user;
+
+        // Role check
+        if (role !== "admin") {
+            throw new DevBuildError('Access denied. Admins only.', 403);
+        }
 
         if (!category) {
             throw new DevBuildError('Category not found', 404);
