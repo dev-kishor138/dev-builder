@@ -1,5 +1,8 @@
 import { Icon } from "@iconify/react";
 import { Link, NavLink } from "react-router-dom";
+import logoImage from "../../assets/backend/images/logo.png";
+import smallLogo from "../../assets/backend/images/logo-icon.png";
+
 
 const Sidebar = ({ sidebarActive, mobileMenuControl, mobileMenu }) => {
     return (
@@ -8,10 +11,10 @@ const Sidebar = ({ sidebarActive, mobileMenuControl, mobileMenu }) => {
                 sidebarActive
                     ? "sidebar active "
                     : mobileMenu
-                    ? "sidebar sidebar-open"
-                    : "sidebar"
+                        ? "sidebar sidebar-open"
+                        : "sidebar"
             }
-            >
+        >
             <button
                 onClick={mobileMenuControl}
                 type="button"
@@ -22,17 +25,17 @@ const Sidebar = ({ sidebarActive, mobileMenuControl, mobileMenu }) => {
             <div>
                 <Link to="/" className="sidebar-logo">
                     <img
-                        src="accountant-logo.png"
+                        src={logoImage}
                         alt="site logo"
                         className="light-logo"
                     />
                     <img
-                        src="accountant-logo.png"
+                        src={logoImage}
                         alt="site logo"
                         className="dark-logo"
                     />
                     <img
-                        src="react/images/logo-icon.png"
+                        src={smallLogo}
                         alt="site logo"
                         className="logo-icon"
                     />

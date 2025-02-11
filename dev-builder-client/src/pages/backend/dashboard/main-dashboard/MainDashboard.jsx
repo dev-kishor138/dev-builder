@@ -1,5 +1,7 @@
 // Importing necessary components
 
+import BlogStats from "./section/BlogStats";
+
 // import { Breadcrumb } from "react-bootstrap";
 // import TotalTopStats from "./section/TotalTopStats";
 // import ProfitLoss from "./section/ProfitLoss";
@@ -14,7 +16,8 @@ const MainDashboard = () => {
     return (
         <>
 
-            This is Dashboaed
+            {/* <h2 className="text-4xl"> This is Dashboard</h2> */}
+            <BlogStats />
             {/* Breadcrumb component to display page navigation */}
             {/* <Breadcrumb section="Dashboard" title="Main Dashboard" /> */}
             {/* Grid layout for displaying the dashboard cards */}

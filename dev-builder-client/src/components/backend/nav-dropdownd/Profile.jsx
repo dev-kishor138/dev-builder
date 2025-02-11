@@ -1,11 +1,12 @@
 // Importing necessary components: Icon from iconify for displaying icons and Link from react-router-dom for navigation
 import { Icon } from "@iconify/react/dist/iconify.js";
 import { Link } from "react-router-dom";
+import userImage from '../../../assets/backend/images/users/user1.png'
 
 // Profile component definition
 const Profile = () => {
     return (
-        
+
         <div className="dropdown">
             {/* Profile button that triggers the dropdown on click */}
             <button
@@ -15,7 +16,7 @@ const Profile = () => {
             >
                 {/* User profile image */}
                 <img
-                    src="react/images/user.png"
+                    src={userImage}
                     alt="image_user"
                     className="w-40-px h-40-px object-fit-cover rounded-circle"
                 />

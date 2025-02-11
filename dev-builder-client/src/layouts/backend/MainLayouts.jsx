@@ -11,9 +11,23 @@ import RouteScrollToTop from "../../helper/RouteScrollToTop";
 import "../../assets/backend/css/style.css";
 import "../../assets/backend/css/remixicon.css";
 import "../../assets/backend/css/extra.css";
-// import "../../assets/backend/css/lib/bootstrap.min.css";
 import "../../assets/backend/css/lib/animate.min.css";
+import "../../assets/backend/css/lib/bootstrap.min.css";
+import "../../assets/backend/css/lib/apexcharts.css";
+import "../../assets/backend/css/lib/audioplayer.css";
+import "../../assets/backend/css/lib/dataTables.min.css";
+import "../../assets/backend/css/lib/editor-katex.min.css";
+import "../../assets/backend/css/lib/editor.atom-one-dark.min.css";
+import "../../assets/backend/css/lib/editor.quill.snow.css";
+import "../../assets/backend/css/lib/file-upload.css";
+import "../../assets/backend/css/lib/flatpickr.min.css";
+import "../../assets/backend/css/lib/full-calendar.css";
+import "../../assets/backend/css/lib/jquery-jvectormap-2.0.5.css";
+import "../../assets/backend/css/lib/magnific-popup.css";
+import "../../assets/backend/css/lib/prism.css";
+import "../../assets/backend/css/lib/slick.css";
 import "react-quill/dist/quill.snow.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 // MainLayouts functional component for the main layout structure
 const MainLayouts = () => {
